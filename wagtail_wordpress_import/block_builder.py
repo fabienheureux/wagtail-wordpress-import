@@ -54,11 +54,10 @@ class BlockBuilder:
                     try:
                         promotee.parent.replace_with(promotee)
                     except:
-                        print("promotee tags", promotee)
-                        print("Promotee", promotee)
-                        print("Parent", promotee.parent)
-                        print("Parent name", promotee.parent.name)
-                        print("Removee tags", removee_tags)
+                        print("\nERROR on promotee")
+                        print(promotee)
+                        print("\n")
+
     def get_builder_function(self, element):
         """
         params
