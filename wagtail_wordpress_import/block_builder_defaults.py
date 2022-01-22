@@ -256,7 +256,6 @@ def get_soundcloud_url(api_url):
     if api_url_r.status_code == 200:
         soup = BeautifulSoup(api_url_r.text, features="html5lib")
         link = soup.find("link", rel="canonical")
-        print("URL soundcloud modifiée", api_url, link["href"])
         return link["href"]
 
     else:
@@ -289,8 +288,6 @@ def build_iframe_block(tag):
                 "embed": block.get_prep_value(value)
             }
         }
-
-        print("IT WORKED \n", src)
 
     except ValidationError:
         block_dict = {
