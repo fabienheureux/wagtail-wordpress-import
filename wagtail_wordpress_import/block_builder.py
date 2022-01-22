@@ -51,8 +51,14 @@ class BlockBuilder:
             promotees = self.soup.findAll(promotee)
             for promotee in promotees:
                 if promotee.parent.name in removee_tags:
-                    promotee.parent.replace_with(promotee)
-
+                    try:
+                        promotee.parent.replace_with(promotee)
+                    except:
+                        print("promotee tags", promotee)
+                        print("Promotee", promotee)
+                        print("Parent", promotee.parent)
+                        print("Parent name", promotee.parent.name)
+                        print("Removee tags", removee_tags)
     def get_builder_function(self, element):
         """
         params
