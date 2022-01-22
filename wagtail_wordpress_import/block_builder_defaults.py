@@ -2,12 +2,14 @@ import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.module_loading import import_string
 from django.db.utils import IntegrityError
 from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
+from wagtail.embeds.blocks import EmbedValue, EmbedBlock
 
 ImportedImage = get_image_model()
 ImportedDocument = get_document_model()
@@ -246,13 +248,57 @@ def build_heading_block(tag):
     return block_dict
 
 
+
+###### Custom code ######
+def get_soundcloud_url(api_url):
+    api_url_r = requests.get(api_url)
+
+    if api_url_r.status_code == 200:
+        soup = BeautifulSoup(api_url_r.text, features="html5lib")
+        link = soup.find("link", rel="canonical")
+        print("URL soundcloud modifiée", api_url, link["href"])
+        return link["href"]
+
+    else:
+        print("iFrame soundcloud introuvable", api_url)
+        return api_url
+
+
+def process_src(src):
+    if "youtube" in src:
+        if "embed" in src:
+            src = src.replace("embed/", "watch?v=").replace(
+            "?feature=oembed", ""
+            )
+    if "soundcloud" in src:
+        src = get_soundcloud_url(src)
+
+    return src
+
+###### End custom code ######
+
 def build_iframe_block(tag):
-    block_dict = {
-        "type": "raw_html",
-        "value": '<div class="core-custom"><div class="responsive-iframe">{}</div></div>'.format(
-            str(tag)
-        ),
-    }
+    try:
+        src = process_src(tag["src"])
+        block = EmbedBlock()
+        value = block.clean(EmbedValue(src))
+
+        block_dict = {
+            "type": "embed",
+            "value": {
+                "embed": block.get_prep_value(value)
+            }
+        }
+
+        print("IT WORKED \n", src)
+
+    except ValidationError:
+        block_dict = {
+            "type": "raw_html",
+            "value": '<div class="core-custom"><div class="responsive-iframe">{}</div></div>'.format(
+                str(tag)
+            ),
+        }
     return block_dict
 
 
